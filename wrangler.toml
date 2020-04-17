@@ -4,4 +4,3 @@ account_id = "5179a7cdbdc07ffe04ed220d51330967"
 workers_dev = true
 route = ""
 zone_id = ""
-webpack_config = ""
