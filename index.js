@@ -49,6 +49,10 @@ async function generate(request) {
     count2++
     link = links[1]
   }
+  var response = await fetch(link)
+  var res = await new Response(response.body)
+  res.headers.set('Set-Cookie', setCookie(link))
+  return res
 }
 
 
@@ -73,7 +77,7 @@ function getCookie(request, name) {
   return result
 }
 
-async function getLinks(fooValue) {
+async function getLinks() {
   const init = {
     method: 'GET',
     headers: {
