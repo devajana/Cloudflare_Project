@@ -52,20 +52,6 @@ async function generate(request) {
   }
 }
 
-function foo() {
-  if( typeof foo.counter === 'undefined' ) {
-    foo.counter = 'false';
-  } else
-  if( foo.counter === 'false' ) {
-    foo.counter = 'true';
-  } else
-  if( foo.counter === 'true' ) {
-    foo.counter = 'false';
-  }
-  console.log(foo.counter)
-  return foo.counter
-}
-
 async function getLinks(fooValue) {
   const init = {
     method: 'GET',
@@ -99,14 +85,6 @@ async function getCookie(request, name) {
     })
   }
   return result
-}
-
-class ElementHandler {
-
-  element(element) {
-    console.log(element)
-    element.remove()
-  }
 }
 
 class AttributeHandler {
