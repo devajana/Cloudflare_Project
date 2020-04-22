@@ -73,6 +73,19 @@ function getCookie(request, name) {
   return result
 }
 
+async function getLinks(fooValue) {
+  const init = {
+    method: 'GET',
+    headers: {
+      'Content-type': 'application/json; charset=UTF-8'
+    }
+  }
+  const res = await fetch('https://cfw-takehome.developers.workers.dev/api/variants', init )
+  var resjson = await res.text()
+  const jsonObj = JSON.parse(resjson)
+  return jsonObj.variants
+}
+
 class AttributeHandler {
   constructor(attributeName) {
     this.attributeName = attributeName
