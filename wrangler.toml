@@ -5,3 +5,7 @@ workers_dev = true
 route = ""
 zone_id = ""
 webpack_config = ""
+
+kv-namespaces = [
+         { binding = "COUNTER1", id = "cd8073ff139943deb641974a9ecc1c7d" }
+]

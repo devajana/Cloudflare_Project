@@ -6,15 +6,32 @@ addEventListener('fetch', event => {
  * @param {Request} request
  */
 const COOKIE_NAME = 'variant'
-let response
+
+var count1 = 0
+var count2 = 0
+
 async function handleRequest(request) {
+  let response
   if (request.method === 'GET') {
     let cookieValue = getCookie(request, COOKIE_NAME)
-    if (cookieValue != null) {
-      response = new Response('cookie present', { status: 200 })
+    if (cookieValue) {
+      response = await fetch(cookieValue)
+      response = await new Response(response.body)
+      response.headers.set('Set-Cookie', setCookie(cookieValue))
     } else {
-      let respons = await generate(request, response)
-      response = Response.redirect(respons)
+      count1 = await COUNTER1.get('count1')
+      if (count1 == null)
+      count1 = 0
+      count2 = await COUNTER1.get('count2')
+      if (count2 == null)
+        count2 = 0
+      response = await generate(request)
+      await COUNTER1.put('count1', count1)
+      await COUNTER1.put('count2', count2)
+      res = new HTMLRewriter().on('title', new AttributeHandler("Testing: "+ count1 +"\t" +count2)).transform(res)
+      res = new HTMLRewriter().on('h1#title', new AttributeHandler("Variant Viewing: "+ count1 +"\t" +count2)).transform(res)
+      res = new HTMLRewriter().on('p#description', new AttributeHandler("This is the picked variant for you!")).transform(res)
+      res = new HTMLRewriter().on('a#url', new AttributeHandler("www.google.com")).transform(res)
     }
   } else {
     response = new Response('Expected GET', { status: 500 })
@@ -82,4 +99,23 @@ async function getCookie(request, name) {
     })
   }
   return result
+}
+
+class ElementHandler {
+
+  element(element) {
+    console.log(element)
+    element.remove()
+  }
+}
+
+class AttributeHandler {
+  constructor(attributeName) {
+    this.attributeName = attributeName
+  }
+
+  element(element) {
+    element.setInnerContent(this.attributeName)
+
+  }
 }
