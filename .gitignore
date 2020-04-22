@@ -11,3 +11,4 @@ worker/
 node_modules/
 .cargo-ok
 wrangler.toml
+.wrangler.toml.swp
