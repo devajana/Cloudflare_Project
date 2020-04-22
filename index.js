@@ -28,11 +28,8 @@ async function handleRequest(request) {
       response = await generate(request)
       await COUNTER1.put('count1', count1)
       await COUNTER1.put('count2', count2)
-      res = new HTMLRewriter().on('title', new AttributeHandler("Testing: "+ count1 +"\t" +count2)).transform(res)
-      res = new HTMLRewriter().on('h1#title', new AttributeHandler("Variant Viewing: "+ count1 +"\t" +count2)).transform(res)
-      res = new HTMLRewriter().on('p#description', new AttributeHandler("This is the picked variant for you!")).transform(res)
-      res = new HTMLRewriter().on('a#url', new AttributeHandler("www.google.com")).transform(res)
     }
+    response = rewriteHTML(response)
   } else {
     response = new Response('Expected GET', { status: 500 })
   }
@@ -41,7 +38,7 @@ async function handleRequest(request) {
 
 async function generate(request) {
   const links = await getLinks()
-  var links
+  var link
   if (count1 < count2) {
     count1++
     link = links[0]
@@ -55,10 +52,17 @@ async function generate(request) {
   return res
 }
 
+function rewriteHTML(res) {
+  res = new HTMLRewriter().on('title', new RewriteHandler("Testing: "+ count1 +"\t" +count2)).transform(res)
+  res = new HTMLRewriter().on('h1#title', new RewriteHandler("Variant Viewing: "+ count1 +"\t" +count2)).transform(res)
+  res = new HTMLRewriter().on('p#description', new RewriteHandler("This is the picked variant for you!")).transform(res)
+  res = new HTMLRewriter().on('a#url', new RewriteHandler("www.google.com")).transform(res)
+  res = new HTMLRewriter().on('a', new AttributeRewriter('href')).transform(res)
+  return res
+}
 
 function setCookie(value) {
-  const created_cookie = `variant=`+ value +`; Expires=Wed, 21 Oct 2020 07:28:00 GMT; Path='/';`
-  response.headers.set('Set-Cookie', created_cookie)
+  return COOKIE_NAME + '=' + value + '; path=/; Domain=.devajana.workers.dev; HttpOnly; SameSite=Lax; Secure'
 }
 
 function getCookie(request, name) {
@@ -90,13 +94,31 @@ async function getLinks() {
   return jsonObj.variants
 }
 
-class AttributeHandler {
+class RewriteHandler {
   constructor(attributeName) {
     this.attributeName = attributeName
   }
 
   element(element) {
     element.setInnerContent(this.attributeName)
+  }
+}
 
+const OLD_URL = "https://cloudflare.com"
+const NEW_URL = ""
+
+class AttributeRewriter {
+  constructor(attributeName) {
+    this.attributeName = attributeName
+  }
+
+  element(element) {
+    const attribute = element.getAttribute(this.attributeName)
+    if (attribute) {
+      element.setAttribute(
+        this.attributeName,
+        attribute.replace(OLD_URL, NEW_URL),
+      )
+    }
   }
 }
