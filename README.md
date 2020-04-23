@@ -3,7 +3,7 @@
 This is an application deployed using Cloudflare Workers that fetches one of two webpages when the user visits, each with equal distribution. It is written using Cloudflare Workers API, managed and developed using the command-line tool Wrangler, and deployed to the free workers.dev deployment playground. 
 The application can be found in https://project-cf.devajana.workers.dev
 
-## Steps
+## Development procedure 
 
 ### 1. Create a new project
 Using the command `wrangler generate`, generated a new project on local machine

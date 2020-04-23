@@ -5,35 +5,75 @@ addEventListener('fetch', event => {
  * Respond with hello worker text
  * @param {Request} request
  */
+
 const COOKIE_NAME = 'variant'
-
+ 
 var count1 = 0
-var count2 = 0
-
+let count2 = 0
 async function handleRequest(request) {
-  let response
+  let res
+  // Check if the Request is a 'GET' request
   if (request.method === 'GET') {
+    // Check if the cookie already exists
     let cookieValue = getCookie(request, COOKIE_NAME)
     if (cookieValue) {
-      response = await fetch(cookieValue)
-      response = await new Response(response.body)
-      response.headers.set('Set-Cookie', setCookie(cookieValue))
+      res = await fetch(cookieValue)
+      res = await new Response(res.body)
+      res.headers.set('Set-Cookie', setCookie(cookieValue))
     } else {
+      // Cookie doesn't exist, first time call
+      
+      // To restart counter
+      // await COUNTER1.delete('count1')
+      // await COUNTER1.delete('count2')
       count1 = await COUNTER1.get('count1')
       if (count1 == null)
-      count1 = 0
+        count1 = 0
       count2 = await COUNTER1.get('count2')
       if (count2 == null)
         count2 = 0
-      response = await generate(request)
+      
+      // generate the response using fetch
+      res = await generate(request)
+      console.log("Count1: "+count1+" Count2: "+count2)
+      // Load the counter
       await COUNTER1.put('count1', count1)
       await COUNTER1.put('count2', count2)
     }
-    response = rewriteHTML(response)
+    // rewrite the response
+    res = rewriteHTML(res)
   } else {
-    response = new Response('Expected GET', { status: 500 })
+    return new Response('Expected GET', { status: 500 })
   }
-  return response
+  return res
+}
+
+function setCookie(value) {
+  return COOKIE_NAME + '=' + value + '; path=/; Domain=.devajana.workers.dev; HttpOnly; SameSite=Lax; Secure'
+}
+
+function rewriteHTML(res) {
+    res = new HTMLRewriter().on('title', new AttributeHandler("Cloudflare project")).transform(res)
+    res = new HTMLRewriter().on('h1#title', new AttributeHandler("Demostration of the Cloudflare project")).transform(res)
+    res = new HTMLRewriter().on('p#description', new AttributeHandler("Hope you have a great day! \n Don't forget to wash your hands. Stay safe!")).transform(res)
+    res = new HTMLRewriter().on('a#url', new AttributeHandler("Check out this project on GitHub")).transform(res)
+    res = new HTMLRewriter().on('a', new AttributeRewriter('href')).transform(res)
+    return res
+}
+function getCookie(request, name) {
+  let result = null
+  let cookieString = request.headers.get('Cookie')
+  if (cookieString) {
+    let cookies = cookieString.split(';')
+    cookies.forEach(cookie => {
+      let cookieName = cookie.split('=')[0].trim()
+      if (cookieName === name) {
+        let cookieVal = cookie.split('=')[1]
+        result = cookieVal
+      }
+    })
+  }
+  return result
 }
 
 async function generate(request) {
@@ -52,35 +92,6 @@ async function generate(request) {
   return res
 }
 
-function rewriteHTML(res) {
-  res = new HTMLRewriter().on('title', new RewriteHandler("Testing: "+ count1 +"\t" +count2)).transform(res)
-  res = new HTMLRewriter().on('h1#title', new RewriteHandler("Variant Viewing: "+ count1 +"\t" +count2)).transform(res)
-  res = new HTMLRewriter().on('p#description', new RewriteHandler("This is the picked variant for you!")).transform(res)
-  res = new HTMLRewriter().on('a#url', new RewriteHandler("www.google.com")).transform(res)
-  res = new HTMLRewriter().on('a', new AttributeRewriter('href')).transform(res)
-  return res
-}
-
-function setCookie(value) {
-  return COOKIE_NAME + '=' + value + '; path=/; Domain=.devajana.workers.dev; HttpOnly; SameSite=Lax; Secure'
-}
-
-function getCookie(request, name) {
-  let result = null
-  let cookieString = request.headers.get('Cookie')
-  if (cookieString) {
-    let cookies = cookieString.split(';')
-    cookies.forEach(cookie => {
-      let cookieName = cookie.split('=')[0].trim()
-      if (cookieName === name) {
-        let cookieVal = cookie.split('=')[1]
-        result = cookieVal
-      }
-    })
-  }
-  return result
-}
-
 async function getLinks() {
   const init = {
     method: 'GET',
@@ -94,18 +105,18 @@ async function getLinks() {
   return jsonObj.variants
 }
 
-class RewriteHandler {
+class AttributeHandler {
   constructor(attributeName) {
     this.attributeName = attributeName
   }
 
   element(element) {
     element.setInnerContent(this.attributeName)
+
   }
 }
-
 const OLD_URL = "https://cloudflare.com"
-const NEW_URL = ""
+const NEW_URL = "https://github.com/devajana/Cloudflare_Project"
 
 class AttributeRewriter {
   constructor(attributeName) {
